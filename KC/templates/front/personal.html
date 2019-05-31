@@ -1,0 +1,528 @@
+{% extends "front/base.html" %}
+
+{% block title %}
+    {{ g.current_user.username }} 的 个人推荐
+{% endblock %}
+
+{% block body %}
+
+    <body>
+    <style type="text/css">
+        body {
+            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei";
+        }
+
+        .nav-title {
+            display: inline-block;
+            padding-left: 10%;
+
+        }
+
+        .add_btn, .add_btn:focus, .btn-toolbar .btn-default, .btn-toolbar .btn-default:focus, .dropdown button, .dropdown button:focus {
+            margin-left: 20px;
+            margin-top: 10px;
+            background-color: #ecf0f1;
+            border-color: #ecf0f1;
+            color: #333;
+        }
+
+        .add_btn:focus, .add_btn:hover, .btn-toolbar .btn-default:focus, .btn-toolbar .btn-default:hover, .dropdown button:hover, .dropdown button:focus {
+            background-color: #ecf0f1;
+            border-color: #ecf0f1;
+            color: #000;
+        }
+
+        .tips {
+            padding-left: 20px;
+            margin: 20px;
+        }
+
+        #recommend_list th {
+            text-align: center;
+        }
+
+        .context {
+            margin-top: 20px;
+        }
+
+        @media only screen and (max-width: 800px) {
+            #rec_list td:nth-child(2),
+            #rec_list th:nth-child(2),
+            #rec_list td:nth-child(4),
+            #rec_list th:nth-child(4) {
+                display: none;
+            }
+        }
+
+    </style>
+
+    <!-- NavBar-->
+    <nav class="navbar-default" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <i class="fa fa-list" style="font-size: 24px;margin-top:15px;"></i>
+                </button>
+                <a class="navbar-brand" href="{{ url_for("front.index") }}"><i class="fas fa-home"></i> </a>
+            </div>
+
+            <div class="nav-title">
+                <ul class="nav navbar-nav">
+                    <li><a style="font-size: 30px;">个人推荐</a></li>
+                    <li>
+                        <div class="dropdown collapse navbar-collapse " style="float: left;margin-left: 20px">
+                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1"
+                                    data-toggle="dropdown">
+                                {{ current_type }}
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                {% if current_type != "股票" %}
+                                    <li><a href="{{ url_for("front.personal_view", type = "1") }}">股票</a></li>
+                                {% endif %}
+                                {% if current_type != "债券" %}
+                                    <li><a href="{{ url_for("front.personal_view", type = "2") }}">债券</a></li>
+                                {% endif %}
+                                {% if current_type != "外汇" %}
+                                    <li><a href="{{ url_for("front.personal_view", type = "3") }}">外汇</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                    </li>
+                </ul>
+
+            </div>
+
+
+            <div class="collapse navbar-collapse navbar-right navbar-ex1-collapse">
+                <ul class="nav navbar-nav">
+                    {% if current_type == "股票" %}
+                        <li class="menuItem"><a href="{{ url_for("front.dailyrec_view", type = "1") }}">每日推荐</a></li>
+                    {% elif current_type == "债券" %}
+                        <li class="menuItem"><a href="{{ url_for("front.dailyrec_view", type = "2") }}">每日推荐</a></li>
+                    {% else %}
+                        <li class="menuItem"><a href="{{ url_for("front.dailyrec_view", type = "3") }}">每日推荐</a></li>
+                    {% endif %}
+
+
+                    {% if current_type == "股票" %}
+                        <li class="menuItem"><a href="{{ url_for("front.products_view", type = "1") }}">全部产品</a></li>
+                    {% elif current_type == "债券" %}
+                        <li class="menuItem"><a href="{{ url_for("front.products_view", type = "2") }}">全部产品</a></li>
+                    {% else %}
+                        <li class="menuItem"><a href="{{ url_for("front.products_view", type = "3") }}">全部产品</a></li>
+                    {% endif %}
+
+                    <li id="sp"><a>|</a></li>
+                    <li class="menuItem"><a href="" style="font-size:20px">{{ g.current_user.username }}</a></li>
+                    <li class="menuItem"><a href="{{ url_for('front.logout') }}" style="font-size:14px">注销</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+
+    <div class="container context">
+
+
+        <div class="row history-box">
+            <div class="panel panel-default">
+                <div class="panel-heading" style="background-color: #fff">历史评价</div>
+                <div class="panel-body">
+                    <div class="grade_list" data-currentpage="1">
+                        {% for grades in grade_list %}
+                            <div class="col-md-3">
+                                <ul class="list-group">
+                                    {% for grade in grades %}
+                                        <li class="list-group-item">{{ grade.pid }} :
+                                            <u><a href="{{ url_for('front.product_detail', id=grade.pid) }}"
+                                                  >{{ grade.productname }}</a>
+                                                ( {{ grade.grade }} )
+                                            </u>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row col-md-12 col-sm-12 col-xs-12">
+                        <div class="btn-toolbar">
+                            <div class="btn-group btn-group-sm col-md-3">
+                                <button type="button" class="btn btn-default history-prev"> <</button>
+                                <button type="button" class="btn btn-default history-next"> ></button>
+                            </div>
+                            <div class="btn-group col-md-2 col-md-offset-7" style="float: right">
+                                <button type="button" class="btn btn-default add_btn" data-toggle="modal"
+                                        data-target="#add_grade_modal"> 添加评分
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Button trigger modal -->
+
+        <!-- recommend_list -->
+
+        <div class="row col-md-12 col-sm-12 col-xs-12">
+            <div class="tips">
+                <h3>
+                    根据您的评分,我们为您推荐以下产品:
+                    <br>
+                    <!-- 您未评分或者评分产品过少,我们为您推荐下列热门产品 -->
+                </h3>
+            </div>
+        </div>
+
+
+        <div id="recommend_list" class="content-section-b" style="border-top: 0">
+            <div class="container">
+                <div class="row">
+                    <div class="row wow fadeInDown text-center">
+                        <table id="rec_list" class="table table-bordered">
+                            {% if current_type == '债券' %}
+                                <thead>
+                                <tr>
+                                    <th>排名</th>
+                                    <th>债券代码</th>
+                                    <th>债券名称</th>
+                                    <th>最新价格</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for product in products %}
+                                    <tr>
+                                        <td scope="row">{{ loop.index }}</td>
+                                        <td>{{ product.id }}</td>
+                                        <td><a href="{{ url_for('front.product_detail', id=product.id) }}"
+                                               >{{ product.name }}</a></td>
+                                        <td>{{ product.last_price }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            {% elif current_type == '外汇' %}
+                                <thead>
+                                <tr>
+                                    <th>排名</th>
+                                    <th>外汇代码</th>
+                                    <th>外汇名称</th>
+                                    <th>最新价格</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for product in products %}
+                                    <tr>
+                                        <td scope="row">{{ loop.index }}</td>
+                                        <td>{{ product.symbol }}</td>
+                                        <td><a href="{{ url_for('front.product_detail', id=product.symbol) }}"
+                                               >{{ product.name }}</a></td>
+                                        <td>{{ product.last_price }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            {% else %}
+                                <thead>
+                                <tr>
+                                    <th>排名</th>
+                                    <th>股票代码</th>
+                                    <th>股票名称</th>
+                                    <th>最新价格</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for product in products %}
+                                    <tr>
+                                        <td scope="row">{{ loop.index }}</td>
+                                        <td>{{ product.id }}</td>
+                                        <td><a href="{{ url_for('front.product_detail', id=product.id) }}"
+                                               >{{ product.name }}</a></td>
+                                        <td>{{ product.last_price }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            {% endif %}
+
+                        </table>
+                    </div>
+
+
+                </div>
+                <!-- /.row -->
+
+            </div>
+        </div>
+
+    </div>
+
+
+    </body>
+{% endblock %}
+
+{% block end %}
+    {{ super() }}
+    <!-- Modal -->
+    <div class="modal fade" id="add_grade_modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">添加评分</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="search_box">
+                            <input type="text" name="wd" value="">
+                            <button type="button" class="btn btn-primary btn-sm search_btn">
+                                搜索
+                            </button>
+{#                            <button type="button" class="btn btn-primary btn-sm random_rec" style="float: right">#}
+{#                                随机推荐#}
+{#                            </button>#}
+                        </div>
+                        <div class="search_list" style="margin-top: 10px">
+                            <table class="table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>代码</th>
+                                    <th>简称</th>
+                                    <th style="width: 20px"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td colspan="3">"请通过 代码 或 简称 来搜索"</td>
+                                </tr>
+                                </tbody>
+
+                            </table>
+                        </div>
+                        <div class="grade_input" style="float: right">
+                            <label for="select_grade" class="control-label">评分: </label>
+                            <select id="select_grade" style="display: inline-block"
+                                    class="form-control-static form-control">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    <button type="button" class="submit_grade btn btn-primary">提交</button>
+                </div>
+                <script>
+                    $(".search_box button.search_btn").on("click", function () {
+                        $.ajax({
+                            url: "{{ url_for("front.get_info") }}",
+                            type: "post",
+                            data: {
+                                wd: $(this).prev("input").val(),
+                                tp: '{{ current_type }}'
+                            },
+                            success: function (data) {
+                                $list = $(".search_list tbody");
+                                $list.empty();
+                                for (var i in data) {
+                                    $list.append("<tr>\n" +
+                                        "<td>" + data[i][0] + "</td>\n" +
+                                        "<td>" + data[i][1] + "</td>\n" +
+                                        "<td>\n" +
+                                        "<button type=\"button\" pid=\"" + data[i][0] + "\" class=\"sel_grade btn btn-default btn-xs\">选择</button>\n" +
+                                        "</td>\n" +
+                                        "</tr>")
+                                }
+                                $('.sel_grade').on('click', function () {
+                                    $(".search_list .btn-success").removeClass('btn-success').addClass('btn-default');
+                                    $(this).removeClass('btn-default').addClass('btn-success');
+                                });
+                            },
+                            error: function (e) {
+                                alert("错误！！");
+                            }
+                        });
+
+                    });
+                    $(".search_box button.random_rec").on("click", function () {
+                        $.ajax({
+                            url: "{{ url_for("front.random_rec") }}",
+                            type: "post",
+                            data: {tp: '{{ current_type }}'},
+                            success: function (data) {
+                                $list = $(".search_list tbody");
+                                $list.empty();
+                                for (var i in data) {
+                                    $list.append("<tr>\n" +
+                                        "<td>" + data[i][0] + "</td>\n" +
+                                        "<td>" + data[i][1] + "</td>\n" +
+                                        "<td>\n" +
+                                        "<button type=\"button\" pid=\"" + data[i][0] + "\" class=\"sel_grade btn btn-default btn-xs\">选择</button>\n" +
+                                        "</td>\n" +
+                                        "</tr>")
+                                }
+                                $('.sel_grade').on('click', function () {
+                                    $(".search_list .btn-success").removeClass('btn-success').addClass('btn-default');
+                                    $(this).removeClass('btn-default').addClass('btn-success');
+                                });
+                            },
+                            error: function (e) {
+                                alert("错误！！");
+                            }
+                        });
+
+                    });
+                    $(".submit_grade").on("click", function () {
+                        var $pid = $(".search_list .btn-success").attr("pid");
+                        var $grade = $(".grade_input select").val();
+                        if ($pid && $grade) {
+                            $.ajax({
+                                url: "{{ url_for("front.add_user_grade") }}",
+                                type: "post",
+                                data: {
+                                    pid: $pid,
+                                    grade: $grade,
+                                    tp: '{{ current_type }}'
+                                },
+                                success: function (data) {
+                                    alert("评分成功");
+                                    window.location.reload();
+                                },
+                                error: function (e) {
+                                    alert("评分失败");
+                                }
+                            });
+                        }
+
+                    });
+                </script>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- User JS -->
+    <script type="text/javascript">
+        $('.del_grade').on('click', function () {
+            var $pid = $(this).attr("pid");
+            $.ajax({
+                url: "{{ url_for("front.del_user_grade") }}",
+                type: "post",
+                data: {
+                    pid: $pid
+                },
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (e) {
+                    window.location.reload();
+                }
+            });
+        });
+        $('.history-prev').on('click', function () {
+            var page = parseInt($(".grade_list").attr("data-currentpage"));
+            if (page > 1) {
+                page = page - 1;
+                $(".grade_list").attr("data-currentpage", page);
+                $.ajax({
+                    url: "{{ url_for("front.get_grade") }}",
+                    type: "post",
+                    data: {
+                        page: page
+                    },
+                    success: function (data) {
+                        data = data['data'];
+                        for (var i in data) {
+                            $(".grade_list").empty();
+                            s = "";
+                            index = 0;
+                            for (var i in data) {
+                                if (index === 0) {
+                                    s += "<div class=\"col-md-3\">\n" +
+                                        "<ul class=\"list-group\">";
+                                }
+                                s += "<li class=\"list-group-item\">" + data[i]['pid'] + " : " + data[i]['productname'] + " ( " + data[i]['grade'] + " )</li>";
+                                t = i + 1;
+                                if (index === 4) {
+                                    s += "</ul></div>";
+                                    index = -1;
+                                }
+
+
+                                index += 1;
+                            }
+                            if (data.length % 5 !== 0) {
+                                s += "</ul></div>";
+                            }
+                            $(".grade_list").append(s);
+                        }
+                    },
+                });
+
+            } else {
+                alert("第一页");
+            }
+
+
+        });
+        $('.history-next').on('click', function () {
+            var page = parseInt($(".grade_list").attr("data-currentpage"));
+
+            page = page + 1;
+
+            $.ajax({
+                url: "{{ url_for("front.get_grade") }}",
+                type: "post",
+                data: {
+                    page: page
+                },
+                success: function (data) {
+                    if (data['page'] === page) {
+                        $(".grade_list").attr("data-currentpage", page);
+                        data = data['data'];
+                        $(".grade_list").empty();
+                        s = "";
+                        index = 0;
+                        for (var i in data) {
+                            if (index === 0) {
+                                s += "<div class=\"col-md-3\">\n" +
+                                    "<ul class=\"list-group\">";
+                            }
+                            s += "<li class=\"list-group-item\">" + data[i]['pid'] + " : " + data[i]['productname'] + " ( " + data[i]['grade'] + " )</li>";
+                            t = i + 1;
+                            if (index === 4) {
+                                s += "</ul></div>";
+                                index = -1;
+                            }
+
+
+                            index += 1;
+                        }
+                        if (data.length % 5 !== 0) {
+                            s += "</ul></div>";
+                        }
+                        $(".grade_list").append(s);
+                    } else {
+                        alert("最后一页");
+                    }
+                },
+            });
+
+
+        });
+
+        $('#myTabs a').click(function (e) {
+            e.preventDefault();
+            $(this).tab('show');
+        })
+    </script>
+
+{% endblock %}
+

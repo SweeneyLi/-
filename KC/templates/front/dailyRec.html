@@ -1,0 +1,163 @@
+{% extends "front/base.html" %}
+
+{% block title %}
+    每日推荐
+{% endblock %}
+
+{% block body %}
+    <body>
+    <style type="text/css">
+        body {
+            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei";
+        }
+
+        .nav-title {
+            font-size: 30px;
+            display: inline-block;
+            padding-left: 10%;
+            padding-top: 5px;
+
+        }
+
+        #products_list {
+            margin-top: 20px;
+        }
+
+        .pagination > li > a:hover, .pagination > li > span:hover, .pagination > li > a:focus, .pagination > li > span:focus {
+            background-color: rgba(200, 200, 200, 0.7);
+            border-color: #ecf0f1;
+            color: #000;
+
+        }
+
+        .pagination > li > a, .pagination > li > span {
+            color: #000;
+            border-color: #ecf0f1;
+            background-color: #0000;
+        }
+
+        #page_disable:hover, #page_disable {
+            border-color: #ecf0f1;
+            background-color: #ecf0f1;
+
+        }
+
+        .page_footer {
+            display: inline-block;
+            float: right;
+            margin-top: -20px;
+            margin-bottom: -20px;
+        }
+
+        .btn-filter, .btn-filter:focus, .btn-filter:hover {
+            background-color: #0000;
+            border-color: #ecf0f1;
+            color: #000;
+
+        }
+
+        .form-control {
+            margin-right: 20px;
+            float: left;
+            display: inline-block;
+            width: 60%;
+            border-color: #ecf0f1;
+
+        }
+
+        .filter_box {
+            display: inline-block;
+            float: left;
+            width: 60%;
+        }
+
+        #products_list th {
+            text-align: center;
+        }
+
+    </style>
+    <nav class="navbar-default" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <i class="fa fa-list" style="font-size: 24px;margin-top:15px;"></i>
+                </button>
+                <a class="navbar-brand" href="{{ url_for("front.index") }}"><i class="fas fa-home"></i> </a>
+            </div>
+
+            <div class="nav-title">
+                <a>每日推荐</a>
+            </div>
+
+            <div class="collapse navbar-collapse navbar-right navbar-ex1-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="menuItem"><a href="{{ url_for("front.personal_view", type=tp) }}">个人推荐</a></li>
+                    <li id="sp"><a>|</a></li>
+                    <li class="menuItem"><a href="" style="font-size:20px">{{ g.current_user.username }}</a></li>
+                    <li class="menuItem"><a href="{{ url_for('front.logout') }}" style="font-size:14px">注销</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+    <div id="products_list" style="border-top: 0">
+        <div class="container">
+                                <table id="rec_list" class="table table-bordered">
+                        <thead>
+                        <tr>
+                            {% for p in pp %}
+                                <th>{{ p.prop }}</th>
+                            {% endfor %}
+
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for product in products %}
+                            <tr>
+                                {% if tp == '2' %}
+                                    <td>{{ product.id }}</td>
+                                    <td><a href="{{ url_for('front.product_detail', id=product.id) }}"
+                                           target="_blank">{{ product.name }}</a></td>
+                                    <td>{{ product.last_price }}</td>
+                                    <td>{{ product.change }}</td>
+                                    <td>{{ product.chg }}</td>
+                                    <td>{{ product.open }}</td>
+                                    <td>{{ product.hightest }}</td>
+                                    <td>{{ product.lowest }}</td>
+                                    <td>{{ product.pre_close }}</td>
+                                    <td>{{ product.volume }}</td>
+                                    <td>{{ product.turnover }}</td>
+                                {% elif tp == '3' %}
+                                    <td>{{ product.id }}</td>
+                                    <td>{{ product.symbol }}</td>
+                                    <td><a href="{{ url_for('front.product_detail', id=product.symbol) }}"
+                                           target="_blank">{{ product.name }}</a></td>
+                                    <td>{{ product.last_price }}</td>
+                                    <td>{{ product.change }}</td>
+                                    <td>{{ product.chg }}</td>
+                                    <td>{{ product.highest }}</td>
+                                    <td>{{ product.lowest }}</td>
+                                {% else %}
+                                    <td>{{ product.id }}</td>
+                                    <td><a href="{{ url_for('front.product_detail', id=product.id) }}"
+                                           target="_blank">{{ product.name }}</a></td>
+                                    <td>{{ product.amount }}</td>
+                                    <td>{{ product.price }}</td>
+                                    <td>{{ product.last_price }}</td>
+                                    <td>{{ product.PE_ratio }}</td>
+                                    <td>{{ product.total_increase }}</td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                    </table>
+        </div>
+    </div>
+    </body>
+{% endblock %}
+
+{% block end %}
+    {{ super() }}
+
+{% endblock %}
